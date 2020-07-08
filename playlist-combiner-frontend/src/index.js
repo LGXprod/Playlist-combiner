@@ -1,10 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import * as serviceWorker from './serviceWorker';
+import LoginForm from "./components/login/LoginForm";
 
 ReactDOM.render(
   <React.StrictMode>
-    
+    <LoginForm />
   </React.StrictMode>,
   document.getElementById('root')
 );
