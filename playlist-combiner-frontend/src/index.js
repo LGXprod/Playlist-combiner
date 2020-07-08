@@ -4,6 +4,7 @@ import * as serviceWorker from './serviceWorker';
 import LoginForm from "./components/login/LoginForm";
 
 ReactDOM.render(
+  // using strict mode so I can more easily detect errors
   <React.StrictMode>
     <LoginForm />
   </React.StrictMode>,
