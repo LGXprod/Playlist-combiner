@@ -1,19 +1,17 @@
 require("dotenv").config();
 const express = require("express");
+const bodyParser = require("body-parser");
+
+const loginController = require("./controllers/loginController");
 
 const playlistCombiner = express();
+
+playlistCombiner.use(bodyParser.urlencoded({extended: true}));
 
 playlistCombiner.listen(5000, () => console.log("Server running on port 5000"));
 
 playlistCombiner.get("/test", function(req, res) {
     res.send("worked");
-})
-
-playlistCombiner.post("/login", function(req, res) {
-    const username = req.body.username;
-    const password = req.body.password;
-
-    console.log("x")
-    console.log(username)
-    console.log(password)
 });
+
+loginController(playlistCombiner);

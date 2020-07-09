@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import { TextField, Container, Button, Grid } from "@material-ui/core";
 
 const axios = require("axios").default; // the convention for using npm packages is to require instead of import
+const queryString = require("querystring");
 
 class LoginForm extends React.Component {
 
@@ -27,9 +28,13 @@ class LoginForm extends React.Component {
         console.log("username:", this.state.username)
         console.log("password:", this.state.password)
 
-        axios.post("/login", {
+        axios.post("/login", queryString.stringify({
             username: this.state.username,
             password: this.state.password
+        }), {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            }
         }).then(function(res) {
             console.log(res);
         }).catch(function(err) {
