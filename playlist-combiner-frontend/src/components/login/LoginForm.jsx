@@ -1,17 +1,20 @@
-import React, {useState} from "react";
+import React, { Component } from "react";
 import { TextField, Container, Button, Grid } from "@material-ui/core";
 
 const axios = require("axios").default; // the convention for using npm packages is to require instead of import
 const queryString = require("querystring");
 
-class LoginForm extends React.Component {
+class LoginForm extends Component {
 
     constructor() {
-        super();
+        super(); 
         this.state = {
             username: "",
-            password: ""
+            password: "",
+            showIncorrect: false
         }
+
+        // this.login = this.login.bind(this);
     }
 
     updateUsername = (event) => {
@@ -25,8 +28,7 @@ class LoginForm extends React.Component {
     login = async (e) => {
         e.preventDefault(); // according to the W3C spec this is for browser compatibility
 
-        console.log("username:", this.state.username)
-        console.log("password:", this.state.password)
+        const self = this;
 
         axios.post("/login", queryString.stringify({
             username: this.state.username,
@@ -35,9 +37,13 @@ class LoginForm extends React.Component {
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded'
             }
-        }).then(function(res) {
-            console.log(res);
-        }).catch(function(err) {
+        }).then((function(res) {
+            if (res.data.auth) {
+                window.location.href = "/dashboard";
+            } else {
+                this.setState({ showIncorrect: true });
+            }
+        }).bind(this)).catch(function(err) {
             console.log(err);
         });
     }
@@ -73,7 +79,8 @@ class LoginForm extends React.Component {
                         <TextField type="password" style={form_components_styles} id="outlined-basic"
                         variant="outlined" label="Password" onChange={this.updatePassword} />
                         <Button style={form_components_styles} variant="contained"
-                        onClick={this.login}>Submit</Button>
+                        onClick={ this.login }>Submit</Button>
+                        { this.state.showIncorrect ? <p>Username or password was incorrect.</p> : null }
                     </Grid>
                 </form>
                 {/* <div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div> */}
