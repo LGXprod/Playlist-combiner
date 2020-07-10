@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const { Sequelize, DataTypes } = require("sequelize");
 
 const loginController = require("./controllers/loginController");
+const dashboardController = require("./controllers/dashboardController");
 
 const playlistCombiner = express();
 
@@ -46,6 +47,10 @@ const User = sequelize.define("user", {
     sName: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    spotify_info: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
 }, {
     freezeTableName: true,
@@ -57,3 +62,4 @@ playlistCombiner.get("/test", function(req, res) {
 });
 
 loginController(playlistCombiner, User);
+dashboardController.getUserInfo(playlistCombiner, User);

@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { TextField, Container, Button, Grid } from "@material-ui/core";
+import Cookies from "universal-cookie";
 
 const axios = require("axios").default; // the convention for using npm packages is to require instead of import
 const queryString = require("querystring");
@@ -39,6 +40,12 @@ class LoginForm extends Component {
             }
         }).then((function(res) {
             if (res.data.auth) {
+                const cookie = new Cookies();
+                let currentDate = new Date();
+                
+                cookie.remove("username", { path: "/", expires: currentDate.setMinutes(30) });
+                cookie.set("username", this.state.username, { path: "/" });
+
                 window.location.href = "/dashboard";
             } else {
                 this.setState({ showIncorrect: true });
@@ -60,12 +67,6 @@ class LoginForm extends Component {
         const form_components_styles = {
             marginBottom: "10px"
         }
-
-        // axios.get("/test").then((res) => console.log(res));
-
-        // function updatePassword(event) {
-        //     this.setState({password: event.target.value});
-        // }
 
         return (
             <Container maxWidth="xs">
