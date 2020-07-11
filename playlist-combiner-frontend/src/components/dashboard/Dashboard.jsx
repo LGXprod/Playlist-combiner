@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import Cookies from "universal-cookie";
+import { access } from "fs";
 
 const axios = require("axios");
 const queryString = require("querystring");
@@ -9,13 +10,30 @@ class Dashboard extends Component {
     constructor() {
         super();
 
+        let unlinked = false;
+        let access_token = null;
+        const url = window.location.href; 
+
+        if (url.includes("#")) {
+            const urlParams = (url.split("#")[1]).split("&");
+            unlinked = true;
+
+            for (let param of urlParams) {
+                if (param.includes("access_token")) {
+                    access_token = param.split("=")[1];
+                    break;
+                }
+            }
+        }
+        
         const cookie = new Cookies();
 
         this.state = {
-            unlinked: false,
+            unlinked: unlinked,
             fName: "",
             sName: "",
-            username: cookie.get("username")
+            username: cookie.get("username"),
+            access_token: access_token
         }
     }
 
@@ -47,11 +65,18 @@ class Dashboard extends Component {
                 verticalAlign: "top"
             }
 
+            let url = new URL("https://accounts.spotify.com/authorize");
+            url.searchParams.append("client_id", "038ccb80d4594efa85ae15a36e4e30af");
+            url.searchParams.append("response_type", "token");
+            url.searchParams.append("redirect_uri", "http://localhost:3000/dashboard");
+            url.searchParams.append("scope", encodeURIComponent("playlist-modify-public user-top-read"));
+            console.log(url.href)
+
             return (
                 <div style={{ width: "25vw" }}>
                     <img style={imgStyle} src={ require("../dashboard/spotify-logo.png") }/>
                     <a style={{ width: "75% ", display: "inline-block"}}
-                    href="/">Your spotify account is not linked</a>
+                    href={ url.href }>Your spotify account is not linked</a>
                 </div>
             );
         }
@@ -70,15 +95,33 @@ class Dashboard extends Component {
 
     componentDidMount() {
         const self = this;
-        
+
         this.getUserInfo().then((info) => {
-            if (info.spotify_info != null) {
-                this.setState({ unlinked: true });
-            }
             this.setState({ 
                 fName: info.fName,
                 sName: info.sName
             });
+
+            const access_token = this.state.access_token;
+
+            if (this.state.unlinked) {
+                axios.get("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=50", {
+                    headers: {
+                        'Authorization': 'Bearer ' + access_token
+                    }
+                }).then(function(res) {
+                    // console.log(res)
+                    for (var song of res.data.items) {
+                        axios.get("https://api.spotify.com/v1/audio-features/" + song.id, {
+                            headers: {
+                                'Authorization': 'Bearer ' + access_token
+                            }
+                        }).then(function(featuresRes) {
+                            console.log(featuresRes)
+                        }).catch(err => console.log(err));
+                    }
+                }).catch(err => console.log(err));
+            }
         }).catch(err => console.log(err));
     }
 
