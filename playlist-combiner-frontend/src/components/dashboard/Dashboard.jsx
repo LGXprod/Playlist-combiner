@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Cookies from "universal-cookie";
 // import { access } from "fs";
 import { Bar as BarChart } from "react-chartjs-2";
+import { request } from "https";
 
 const axios = require("axios");
 const queryString = require("querystring");
@@ -147,61 +148,64 @@ class Dashboard extends Component {
                     }
                 }).then(function(res) {
 
-                    function calculateAvgs () {
-                        return new Promise(async (resolve, reject) => {
-                            let averageOfFeatures = {
-                                acousticness: 0,
-                                danceability: 0,
-                                energy: 0,
-                                loudness: 0,
-                                happiness: 0, 
-                                tempo: 0
-                            }
-
-                            async function requestSpotify(reject) {
-                                axios.get("https://api.spotify.com/v1/audio-features/" + song.id, {
-                                    headers: {
-                                        'Authorization': 'Bearer ' + access_token
-                                    }
-                                }).then(function(featuresRes) {
-                                    const data = featuresRes.data;
-                                    averageOfFeatures.acousticness = averageOfFeatures.acousticness + Math.round(100*data.acousticness/50);
-                                    averageOfFeatures.danceability = averageOfFeatures.danceability + Math.round(100*data.danceability/50);
-                                    averageOfFeatures.energy = averageOfFeatures.energy + Math.round(100*data.energy/50);
-                                    averageOfFeatures.loudness = averageOfFeatures.loudness + Math.round(100*data.loudness/50);
-                                    averageOfFeatures.happiness = averageOfFeatures.happiness + Math.round(100*data.valence/50);
-                                    averageOfFeatures.tempo = averageOfFeatures.tempo + Math.round(100*data.tempo/50);
-                                }).catch(err => reject(err));
-                            }
-
-                            for (var song of res.data.items) {
-                                await requestSpotify(reject);
-                            }
-
-                            resolve(averageOfFeatures);
-                        });
-                    }
-
-                    calculateAvgs().then((averageOfFeatures) => {
-                        let newChartData = [];
-                        console.log("source", averageOfFeatures)
-                        console.log("x", averageOfFeatures.acousticness)
-                        for (let feature in averageOfFeatures) {
-                            newChartData.push(averageOfFeatures[feature]);
-                        }
-
+                    function addData(averageOfFeatures) {
+                        console.log("loudness", averageOfFeatures.loudness)
+                        console.log("tempo", averageOfFeatures.tempo)
                         self.setState({
                             data: {
+                                labels: ["Acousticness", "Danceability", "Energy", "Happiness"],
                                 datasets: [
                                     {
-                                        data: newChartData
+                                        label: "Average percentage of spotify measures in your top 50",
+                                        data: [averageOfFeatures.acousticness, averageOfFeatures.danceability,
+                                        averageOfFeatures.energy, averageOfFeatures.happiness],
+                                        backgroundColor: "rgba(192, 108, 132, 0.5)",
+                                        borderWidth: "2",
+                                        borderColor: "#f67280",
+                                        borderRadius: "2"
                                     }
                                 ]
                             }
                         });
+                    }
 
-                        console.log("x", self.state.data.datasets[0].data)
-                    }).catch(err => console.log(err));
+                    async function requestSpotify() {
+                        let averageOfFeatures = {
+                            acousticness: 0,
+                            danceability: 0,
+                            energy: 0,
+                            loudness: 0,
+                            happiness: 0, 
+                            tempo: 0
+                        }
+
+                        for (var song of res.data.items) {
+                            try {
+                                const options = {
+                                    headers: {
+                                        'Authorization': 'Bearer ' + access_token
+                                    }
+                                }
+                                const featureRes = await axios.get("https://api.spotify.com/v1/audio-features/" + song.id, {
+                                    headers: {
+                                        'Authorization': 'Bearer ' + access_token
+                                    }
+                                });
+                                averageOfFeatures.acousticness += Math.round(100*featureRes.data.acousticness/50);
+                                averageOfFeatures.danceability += Math.round(100*featureRes.data.danceability/50);
+                                averageOfFeatures.energy += Math.round(100*featureRes.data.energy/50);
+                                averageOfFeatures.happiness += Math.round(100*featureRes.data.valence/50);
+                                averageOfFeatures.loudness += Math.round(100*featureRes.data.loudness/50);
+                                averageOfFeatures.tempo += Math.round(100*featureRes.data.tempo/50);
+                            } catch(err) {
+                                console.log(err);
+                            }
+                        }
+                        console.log(averageOfFeatures)
+                        addData(averageOfFeatures);
+                    }
+
+                    requestSpotify();
                    
                 }).catch(err => console.log(err));
             }
