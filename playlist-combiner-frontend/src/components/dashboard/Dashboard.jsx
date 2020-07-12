@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import Cookies from "universal-cookie";
 // import { access } from "fs";
-import { Bar as BarChart } from "react-chartjs-2";
+import { Bar as BarChart, Doughnut as DoughnutChart } from "react-chartjs-2";
 import { request } from "https";
 
 const axios = require("axios");
@@ -36,18 +36,7 @@ class Dashboard extends Component {
             sName: "",
             username: cookie.get("username"),
             access_token: access_token, 
-            data: {
-                labels: ["Acousticness", "Danceability", "Energy", "Happiness"],
-                datasets: [
-                  {
-                    data: [],
-                    backgroundColor: "rgba(192, 108, 132, 0.5)",
-                    borderWidth: "2",
-                    borderColor: "#f67280",
-                    borderRadius: "2"
-                  }
-                ]
-            }
+            chartData: [{}, {}, {}]
         }
 
         this.chartReference = React.createRef();
@@ -94,6 +83,26 @@ class Dashboard extends Component {
             }     
         }
 
+        const doughnutOptions = {
+            legend: {
+                labels: {
+                    fontColor: "#f8b595"
+                }
+            },
+            scales: {
+                xAxes: [{
+                    gridLines: {
+                        display:false
+                    }
+                }],
+                yAxes: [{
+                    gridLines: {
+                        display:false
+                    }   
+                }]
+            }
+        }
+
         function isUnlinked() {
             const imgStyle = { 
                 width: "20% ", 
@@ -123,7 +132,9 @@ class Dashboard extends Component {
                 <h1>Dashboard</h1>
                 <h3>{ this.state.fName + " " + this.state.sName }</h3>
                 { !(this.state.unlinked) ? isUnlinked() : null }
-                { this.state.unlinked ? <BarChart ref={this.chartReference} data={this.state.data} options={options} /> : null }
+                { this.state.unlinked ? <BarChart ref={this.chartReference} data={this.state.chartData[0]} options={options} /> : null }
+                {/* { this.state.unlinked ? <BarChart ref={this.chartReference} data={this.state.chartData[1]} options={options} /> : null } */}
+                { this.state.unlinked ? <DoughnutChart ref={this.chartReference} data={this.state.chartData[2]} options={doughnutOptions} /> : null }
             </div>
         );
 
@@ -147,25 +158,46 @@ class Dashboard extends Component {
                         'Authorization': 'Bearer ' + access_token
                     }
                 }).then(function(res) {
+                    console.log(res)
+                    function addData(spotifyStats) {
+                        // console.log("loudness", averageOfFeatures.loudness)
+                        // console.log("tempo", averageOfFeatures.tempo)
 
-                    function addData(averageOfFeatures) {
-                        console.log("loudness", averageOfFeatures.loudness)
-                        console.log("tempo", averageOfFeatures.tempo)
+                        const genres = [];
+                        const noTimes = [];
+
+                        for (let genre in spotifyStats.genres) {
+                            genres.push(genre);
+                            noTimes.push(spotifyStats.genres[genre]);
+                        }
+
                         self.setState({
-                            data: {
-                                labels: ["Acousticness", "Danceability", "Energy", "Happiness"],
-                                datasets: [
-                                    {
-                                        label: "Average percentage of spotify measures in your top 50",
-                                        data: [averageOfFeatures.acousticness, averageOfFeatures.danceability,
-                                        averageOfFeatures.energy, averageOfFeatures.happiness],
-                                        backgroundColor: "rgba(192, 108, 132, 0.5)",
-                                        borderWidth: "2",
-                                        borderColor: "#f67280",
-                                        borderRadius: "2"
-                                    }
-                                ]
-                            }
+                            chartData: [
+                                {
+                                    labels: ["Acousticness", "Danceability", "Energy", "Happiness"],
+                                    datasets: [
+                                        {
+                                            label: "Average percentage of spotify measures in your top 50",
+                                            data: [spotifyStats.averageOfFeatures.acousticness, spotifyStats.averageOfFeatures.danceability,
+                                            spotifyStats.averageOfFeatures.energy, spotifyStats.averageOfFeatures.happiness],
+                                            backgroundColor: "rgba(192, 108, 132, 0.5)",
+                                            borderWidth: "2",
+                                            borderColor: "#f67280"
+                                        }
+                                    ]
+                                }, self.state.chartData[1],
+                                {
+                                    labels: genres,
+                                    datasets: [
+                                        {
+                                            data: noTimes,
+                                            backgroundColor: "rgba(192, 108, 132, 0.5)",
+                                            borderWidth: "2",
+                                            borderColor: "#f67280"
+                                        }
+                                    ]
+                                }
+                            ]
                         });
                     }
 
@@ -178,6 +210,7 @@ class Dashboard extends Component {
                             happiness: 0, 
                             tempo: 0
                         }
+                        let genres = {}
 
                         for (var song of res.data.items) {
                             try {
@@ -186,23 +219,30 @@ class Dashboard extends Component {
                                         'Authorization': 'Bearer ' + access_token
                                     }
                                 }
-                                const featureRes = await axios.get("https://api.spotify.com/v1/audio-features/" + song.id, {
-                                    headers: {
-                                        'Authorization': 'Bearer ' + access_token
-                                    }
-                                });
+                                const featureRes = await axios.get("https://api.spotify.com/v1/audio-features/" + song.id, options);
+                                const artistRes = await axios.get("https://api.spotify.com/v1/artists/" + song.artists[0].id, options);
+                                
                                 averageOfFeatures.acousticness += Math.round(100*featureRes.data.acousticness/50);
                                 averageOfFeatures.danceability += Math.round(100*featureRes.data.danceability/50);
                                 averageOfFeatures.energy += Math.round(100*featureRes.data.energy/50);
                                 averageOfFeatures.happiness += Math.round(100*featureRes.data.valence/50);
-                                averageOfFeatures.loudness += Math.round(100*featureRes.data.loudness/50);
-                                averageOfFeatures.tempo += Math.round(100*featureRes.data.tempo/50);
+                                averageOfFeatures.loudness += featureRes.data.loudness/50;
+                                averageOfFeatures.tempo += featureRes.data.tempo/50;
+                                
+                                for (let genre of artistRes.data.genres) {
+                                    console.log(genre);
+                                    if (genres.hasOwnProperty(genre)) {
+                                        genres[genre] += 1;
+                                    } else {
+                                        genres[genre] = 1;
+                                    }
+                                }
                             } catch(err) {
                                 console.log(err);
                             }
                         }
-                        console.log(averageOfFeatures)
-                        addData(averageOfFeatures);
+
+                        addData({ averageOfFeatures: averageOfFeatures, genres: genres });
                     }
 
                     requestSpotify();
