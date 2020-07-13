@@ -63,3 +63,4 @@ playlistCombiner.get("/test", function(req, res) {
 
 loginController(playlistCombiner, User);
 dashboardController.getUserInfo(playlistCombiner, User);
+dashboardController.saveSpotifyInfo(playlistCombiner, User);

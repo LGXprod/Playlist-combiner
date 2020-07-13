@@ -23,6 +23,23 @@ function getUserInfo(app, User) {
     });
 }
 
+function saveSpotifyInfo(app, User) {
+    app.post("/saveSpotifyInfo", function(req, res) {
+        console.log("x", req.body.spotify_info)
+        User.update({ spotify_info: req.body.spotify_info }, 
+            { 
+                where: {
+                    username: {
+                        [Op.eq]: req.body.username
+                    }
+                }
+            });
+
+        res.send({ spotifyInfoSaved: true });
+    });
+}
+
 module.exports = {
-    getUserInfo: getUserInfo
+    getUserInfo: getUserInfo,
+    saveSpotifyInfo: saveSpotifyInfo
 }

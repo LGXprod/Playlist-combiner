@@ -12,31 +12,19 @@ class Dashboard extends Component {
     constructor() {
         super();
 
-        let unlinked = false;
+        let linked = false;
         let access_token = null;
-        const url = window.location.href; 
-
-        if (url.includes("#")) {
-            const urlParams = (url.split("#")[1]).split("&");
-            unlinked = true;
-
-            for (let param of urlParams) {
-                if (param.includes("access_token")) {
-                    access_token = param.split("=")[1];
-                    break;
-                }
-            }
-        }
         
         const cookie = new Cookies();
 
         this.state = {
-            unlinked: unlinked,
+            linked: linked,
             fName: "",
             sName: "",
             username: cookie.get("username"),
             access_token: access_token, 
-            chartData: [{}, {}, {}]
+            chartData: [{}, {}, {}],
+            spotify_info: {}
         }
 
         this.chartReference = React.createRef();
@@ -53,6 +41,7 @@ class Dashboard extends Component {
                 'Content-Type': 'application/x-www-form-urlencoded'
                 }
             }).then(function(res) {
+                if (res.data.spotify_info != null) this.setState({ linked: true }) 
                 resolve(res.data);
             }).catch(function(err) {
                 reject(err);
@@ -109,7 +98,7 @@ class Dashboard extends Component {
             }
         }
 
-        function isUnlinked() {
+        function islinked() {
             const imgStyle = { 
                 width: "20% ", 
                 display: "inline-block", 
@@ -158,16 +147,16 @@ class Dashboard extends Component {
                 <h3 style={{textAlign: "center", fontSize: "2.5vw"}}>
                     { "Name: " + this.state.fName + " " + this.state.sName + " | Username: " + this.state.username}
                 </h3>
-                { !(this.state.unlinked) ? isUnlinked() : null }
+                { !(this.state.linked) ? islinked() : null }
                 <Grid container direction="row" justify="space-evenly" alignItems="baseline">
                     <Grid item lg={6} md={6} sm={10} xs={10}>
                         <Paper elevation={3} style={graphStyle}>
-                            { this.state.unlinked ? <BarChart ref={this.chartReference} data={this.state.chartData[0]} options={options} /> : null }
+                            { this.state.linked ? <BarChart ref={this.chartReference} data={this.state.chartData[0]} options={options} /> : null }
                         </Paper>
                     </Grid>
                     <Grid item lg={6} md={6} sm={10} xs={10}>
                         <Paper elevation={3} style={graphStyle}>
-                            { this.state.unlinked ? <DoughnutChart style={graphStyle} ref={this.chartReference} data={this.state.chartData[2]} options={doughnutOptions} /> : null }
+                            { this.state.linked ? <DoughnutChart style={graphStyle} ref={this.chartReference} data={this.state.chartData[2]} options={doughnutOptions} /> : null }
                         </Paper>
                     </Grid>
                 </Grid>
@@ -256,136 +245,178 @@ class Dashboard extends Component {
     }
 
     componentDidMount() {
-        console.log(this.chartReference)
+
+        const url = window.location.href; 
+
+        const self = this;
+        console.log(this.state.linked)
+
+        function saveSpotifyInfo(spotifyStats) {
+            console.log(JSON.stringify(spotifyStats))
+            axios.post("/saveSpotifyInfo", queryString.stringify({
+                username: self.state.username,
+                spotify_info: JSON.stringify(spotifyStats)
+            }), {
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+        }
+
+        function addData(spotifyStats) {
+            // console.log("loudness", averageOfFeatures.loudness)
+            // console.log("tempo", averageOfFeatures.tempo)
+
+            const genresFound = spotifyStats.genres;
+
+            const genres = [];
+            const noTimes = [];
+
+            // for (let genre in spotifyStats.genres) {
+            //     genres.push(genre);
+            //     noTimes.push(spotifyStats.genres[genre]);
+            // }
+
+            function mostPopularGenre() {
+                
+                let max = 1;
+                let maxGenre;
+
+                for (let genre in genresFound) {
+                    if (genresFound[genre] >= max) {
+                        max = genresFound[genre];
+                        maxGenre = genre;
+                    }
+                }
+                
+                genres.push(maxGenre);
+                noTimes.push(max)
+
+                delete genresFound[maxGenre];
+
+            }
+
+            for (let i = 1; i <= 5; i++) mostPopularGenre();
+
+            self.setState({
+                chartData: [
+                    {
+                        labels: ["Acousticness", "Danceability", "Energy", "Happiness"],
+                        datasets: [
+                            {
+                                label: "Average percentage of spotify measures in your top 50",
+                                data: [spotifyStats.averageOfFeatures.acousticness, spotifyStats.averageOfFeatures.danceability,
+                                spotifyStats.averageOfFeatures.energy, spotifyStats.averageOfFeatures.happiness],
+                                backgroundColor: "rgba(192, 108, 132, 0.5)",
+                                borderWidth: "2",
+                                borderColor: "#f67280"
+                            }
+                        ]
+                    }, self.state.chartData[1],
+                    {
+                        labels: genres,
+                        datasets: [
+                            {
+                                data: noTimes,
+                                backgroundColor: "rgba(192, 108, 132, 0.5)",
+                                borderWidth: "2",
+                                borderColor: "#f67280"
+                            }
+                        ]
+                    }
+                ]
+            });
+
+            saveSpotifyInfo(spotifyStats);
+        }
 
         this.getUserInfo().then((info) => {
             this.setState({ 
                 fName: info.fName,
-                sName: info.sName
+                sName: info.sName,
+                spotifyStats: info.spotify_info
             });
 
-            const access_token = this.state.access_token;
-            const self = this;
+            if (!this.state.linked) {
 
-            if (this.state.unlinked) {
-                axios.get("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=50", {
-                    headers: {
-                        'Authorization': 'Bearer ' + access_token
-                    }
-                }).then(function(res) {
-                    console.log(res)
-                    function addData(spotifyStats) {
-                        // console.log("loudness", averageOfFeatures.loudness)
-                        // console.log("tempo", averageOfFeatures.tempo)
+                if (url.includes("#")) {
 
-                        const genresFound = spotifyStats.genres;
-
-                        const genres = [];
-                        const noTimes = [];
-
-                        // for (let genre in spotifyStats.genres) {
-                        //     genres.push(genre);
-                        //     noTimes.push(spotifyStats.genres[genre]);
-                        // }
-
-                        function mostPopularGenre() {
-                            
-                            let max = 1;
-                            let maxGenre;
-
-                            for (let genre in genresFound) {
-                                if (genresFound[genre] >= max) {
-                                    max = genresFound[genre];
-                                    maxGenre = genre;
-                                }
-                            }
-                            
-                            genres.push(maxGenre);
-                            noTimes.push(max)
-
-                            delete genresFound[maxGenre];
-
+                    const urlParams = (url.split("#")[1]).split("&");
+                    self.setState({ linked: true });
+        
+                    for (let param of urlParams) {
+                        if (param.includes("access_token")) {
+                            self.setState({ access_token: param.split("=")[1] });
+                            break;
                         }
+                    }
 
-                        for (let i = 1; i <= 5; i++) mostPopularGenre();
+                    const access_token = this.state.access_token;
 
-                        self.setState({
-                            chartData: [
-                                {
-                                    labels: ["Acousticness", "Danceability", "Energy", "Happiness"],
-                                    datasets: [
-                                        {
-                                            label: "Average percentage of spotify measures in your top 50",
-                                            data: [spotifyStats.averageOfFeatures.acousticness, spotifyStats.averageOfFeatures.danceability,
-                                            spotifyStats.averageOfFeatures.energy, spotifyStats.averageOfFeatures.happiness],
-                                            backgroundColor: "rgba(192, 108, 132, 0.5)",
-                                            borderWidth: "2",
-                                            borderColor: "#f67280"
+                    axios.get("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=50", {
+                        headers: {
+                            'Authorization': 'Bearer ' + access_token
+                        }
+                    }).then(function(res) {
+
+                            async function requestSpotify() {
+                                let averageOfFeatures = {
+                                    acousticness: 0,
+                                    danceability: 0,
+                                    energy: 0,
+                                    loudness: 0,
+                                    happiness: 0, 
+                                    tempo: 0
+                                }
+
+                                let genres = {}
+
+                                for (var song of res.data.items) {
+
+                                    try {
+
+                                        const options = {
+                                            headers: {
+                                                'Authorization': 'Bearer ' + access_token
+                                            }
                                         }
-                                    ]
-                                }, self.state.chartData[1],
-                                {
-                                    labels: genres,
-                                    datasets: [
-                                        {
-                                            data: noTimes,
-                                            backgroundColor: "rgba(192, 108, 132, 0.5)",
-                                            borderWidth: "2",
-                                            borderColor: "#f67280"
+
+                                        const featureRes = await axios.get("https://api.spotify.com/v1/audio-features/" + song.id, options);
+                                        const artistRes = await axios.get("https://api.spotify.com/v1/artists/" + song.artists[0].id, options);
+                                        
+                                        averageOfFeatures.acousticness += Math.round(100*featureRes.data.acousticness/50);
+                                        averageOfFeatures.danceability += Math.round(100*featureRes.data.danceability/50);
+                                        averageOfFeatures.energy += Math.round(100*featureRes.data.energy/50);
+                                        averageOfFeatures.happiness += Math.round(100*featureRes.data.valence/50);
+                                        averageOfFeatures.loudness += featureRes.data.loudness/50;
+                                        averageOfFeatures.tempo += featureRes.data.tempo/50;
+                                        
+                                        for (let genre of artistRes.data.genres) {
+                                            console.log(genre);
+                                            if (genres.hasOwnProperty(genre)) {
+                                                genres[genre] += 1;
+                                            } else {
+                                                genres[genre] = 1;
+                                            }
                                         }
-                                    ]
-                                }
-                            ]
-                        });
-                    }
 
-                    async function requestSpotify() {
-                        let averageOfFeatures = {
-                            acousticness: 0,
-                            danceability: 0,
-                            energy: 0,
-                            loudness: 0,
-                            happiness: 0, 
-                            tempo: 0
-                        }
-                        let genres = {}
+                                    } catch(err) {
+                                        console.log(err);
+                                    }
+                                    
+                                }
 
-                        for (var song of res.data.items) {
-                            try {
-                                const options = {
-                                    headers: {
-                                        'Authorization': 'Bearer ' + access_token
-                                    }
-                                }
-                                const featureRes = await axios.get("https://api.spotify.com/v1/audio-features/" + song.id, options);
-                                const artistRes = await axios.get("https://api.spotify.com/v1/artists/" + song.artists[0].id, options);
-                                
-                                averageOfFeatures.acousticness += Math.round(100*featureRes.data.acousticness/50);
-                                averageOfFeatures.danceability += Math.round(100*featureRes.data.danceability/50);
-                                averageOfFeatures.energy += Math.round(100*featureRes.data.energy/50);
-                                averageOfFeatures.happiness += Math.round(100*featureRes.data.valence/50);
-                                averageOfFeatures.loudness += featureRes.data.loudness/50;
-                                averageOfFeatures.tempo += featureRes.data.tempo/50;
-                                
-                                for (let genre of artistRes.data.genres) {
-                                    console.log(genre);
-                                    if (genres.hasOwnProperty(genre)) {
-                                        genres[genre] += 1;
-                                    } else {
-                                        genres[genre] = 1;
-                                    }
-                                }
-                            } catch(err) {
-                                console.log(err);
+                                addData({ averageOfFeatures: averageOfFeatures, genres: genres });
                             }
-                        }
 
-                        addData({ averageOfFeatures: averageOfFeatures, genres: genres });
-                    }
-
-                    requestSpotify();
+                        requestSpotify();
                    
-                }).catch(err => console.log(err));
+                    }).catch(err => console.log(err));
+
+                }
+                
+            } else {
+                addData(this.state.spotify_info);
             }
         }).catch(err => console.log(err));
     }
