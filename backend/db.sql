@@ -6,3 +6,4 @@ create table user (
 );
 
 alter table user add constraint pk_user primary key (username);
+alter table user add spotify_info longtext;

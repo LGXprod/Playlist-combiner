@@ -1,8 +1,7 @@
 import React, { Component } from "react";
 import Cookies from "universal-cookie";
-// import { access } from "fs";
 import { Bar as BarChart, Doughnut as DoughnutChart } from "react-chartjs-2";
-import { request } from "https";
+import { Grid, Paper, Accordion } from "@material-ui/core";
 
 const axios = require("axios");
 const queryString = require("querystring");
@@ -65,20 +64,20 @@ class Dashboard extends Component {
         const options = {
             legend: {
                 labels: {
-                    fontColor: "#f8b595"
+                    fontColor: "#fc85ae"
                 }
             },
             scales: {
                 yAxes: [{
                     ticks: {
-                        beginAtZero:true,
-                        fontColor: '#f8b595'
-                    },
+                        beginAtZero: true,
+                        fontColor: '#fc85ae'
+                    }
                 }],
               xAxes: [{
                     ticks: {
-                        fontColor: '#f8b595'
-                    },
+                        fontColor: '#fc85ae'
+                    }
                 }]
             }     
         }
@@ -86,19 +85,25 @@ class Dashboard extends Component {
         const doughnutOptions = {
             legend: {
                 labels: {
-                    fontColor: "#f8b595"
+                    fontColor: "#fc85ae"
                 }
             },
             scales: {
                 xAxes: [{
                     gridLines: {
-                        display:false
-                    }
+                        display: false
+                    },
+                    ticks: {
+                        display: false
+                    }  
                 }],
                 yAxes: [{
                     gridLines: {
-                        display:false
-                    }   
+                        display: false,
+                    },
+                    ticks: {
+                        display: false
+                    }  
                 }]
             }
         }
@@ -127,14 +132,47 @@ class Dashboard extends Component {
             );
         }
 
+        const graphStyle = {
+            margin: "1.75vw",
+            backgroundColor: "#574b90",
+            padding: "20px"
+        }
+
         return (
             <div>
-                <h1>Dashboard</h1>
-                <h3>{ this.state.fName + " " + this.state.sName }</h3>
+                <h1 style={{textAlign: "center", fontSize: "5vw"}}>Spotify Mixer Dashboard</h1>
+                <h3 style={{textAlign: "center", fontSize: "2.5vw"}}>
+                    { "Name: " + this.state.fName + " " + this.state.sName + " | Username: " + this.state.username}
+                </h3>
                 { !(this.state.unlinked) ? isUnlinked() : null }
-                { this.state.unlinked ? <BarChart ref={this.chartReference} data={this.state.chartData[0]} options={options} /> : null }
-                {/* { this.state.unlinked ? <BarChart ref={this.chartReference} data={this.state.chartData[1]} options={options} /> : null } */}
-                { this.state.unlinked ? <DoughnutChart ref={this.chartReference} data={this.state.chartData[2]} options={doughnutOptions} /> : null }
+                <Grid container direction="row" justify="space-evenly" alignItems="baseline">
+                    <Grid item lg={6} md={6} sm={10} xs={10}>
+                        <Paper elevation={3} style={graphStyle}>
+                            { this.state.unlinked ? <BarChart ref={this.chartReference} data={this.state.chartData[0]} options={options} /> : null }
+                        </Paper>
+                    </Grid>
+                    {/* <Grid>
+                        <Paper elevation={3} style={graphStyle}>
+                            <Accordion>
+                            <AccordionSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                aria-controls="panel1a-content"
+                                id="panel1a-header"
+                                >
+                                <Typography className={classes.heading}>Accordion 1</Typography>
+                                </AccordionSummary>
+                            </Accordion>
+                        </Paper>
+                    </Grid> */}
+                    <Grid item lg={6} md={6} sm={10} xs={10}>
+                        <Paper elevation={3} style={graphStyle}>
+                            { this.state.unlinked ? <DoughnutChart style={graphStyle} ref={this.chartReference} data={this.state.chartData[2]} options={doughnutOptions} /> : null }
+                        </Paper>
+                    </Grid>
+                </Grid>
+                <div>
+                    
+                </div>
             </div>
         );
 
@@ -163,13 +201,36 @@ class Dashboard extends Component {
                         // console.log("loudness", averageOfFeatures.loudness)
                         // console.log("tempo", averageOfFeatures.tempo)
 
+                        const genresFound = spotifyStats.genres;
+
                         const genres = [];
                         const noTimes = [];
 
-                        for (let genre in spotifyStats.genres) {
-                            genres.push(genre);
-                            noTimes.push(spotifyStats.genres[genre]);
+                        // for (let genre in spotifyStats.genres) {
+                        //     genres.push(genre);
+                        //     noTimes.push(spotifyStats.genres[genre]);
+                        // }
+
+                        function mostPopularGenre() {
+                            
+                            let max = 1;
+                            let maxGenre;
+
+                            for (let genre in genresFound) {
+                                if (genresFound[genre] >= max) {
+                                    max = genresFound[genre];
+                                    maxGenre = genre;
+                                }
+                            }
+                            
+                            genres.push(maxGenre);
+                            noTimes.push(max)
+
+                            delete genresFound[maxGenre];
+
                         }
+
+                        for (let i = 1; i <= 5; i++) mostPopularGenre();
 
                         self.setState({
                             chartData: [
