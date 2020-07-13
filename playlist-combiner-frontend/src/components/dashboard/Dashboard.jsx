@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 import Cookies from "universal-cookie";
 import { Bar as BarChart, Doughnut as DoughnutChart } from "react-chartjs-2";
-import { Grid, Paper, Accordion } from "@material-ui/core";
+import { Grid, Paper, Card, CardMedia, CardContent, Typography, CardActionArea } from "@material-ui/core";
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 const axios = require("axios");
 const queryString = require("querystring");
@@ -138,6 +139,19 @@ class Dashboard extends Component {
             padding: "20px"
         }
 
+        const descStyle = {
+            backgroundColor: "#574b90",
+            color: "#fc85ae"
+        }
+
+        const imageStyle = {
+            overflow: "hidden", 
+            width: "100%", 
+            marginBottom: "10px", 
+            border: "2.5px solid rgba(192, 108, 132, 1)",
+            borderRadius: "1.5px"
+        }
+
         return (
             <div>
                 <h1 style={{textAlign: "center", fontSize: "5vw"}}>Spotify Mixer Dashboard</h1>
@@ -151,25 +165,88 @@ class Dashboard extends Component {
                             { this.state.unlinked ? <BarChart ref={this.chartReference} data={this.state.chartData[0]} options={options} /> : null }
                         </Paper>
                     </Grid>
-                    {/* <Grid>
-                        <Paper elevation={3} style={graphStyle}>
-                            <Accordion>
-                            <AccordionSummary
-                                expandIcon={<ExpandMoreIcon />}
-                                aria-controls="panel1a-content"
-                                id="panel1a-header"
-                                >
-                                <Typography className={classes.heading}>Accordion 1</Typography>
-                                </AccordionSummary>
-                            </Accordion>
-                        </Paper>
-                    </Grid> */}
                     <Grid item lg={6} md={6} sm={10} xs={10}>
                         <Paper elevation={3} style={graphStyle}>
                             { this.state.unlinked ? <DoughnutChart style={graphStyle} ref={this.chartReference} data={this.state.chartData[2]} options={doughnutOptions} /> : null }
                         </Paper>
                     </Grid>
                 </Grid>
+
+                <Paper elevation={3} style={{backgroundColor: "rgba(0,0,0,0)"}}>
+                    <Grid container direction="row" justify="space-evenly" alignItems="baseline">
+
+                        <Grid item lg={2} md={10} sm={10} xs={10}>
+                            <Card style={descStyle} variant="outlined">
+                                <CardContent>
+                                    <div style={imageStyle}>
+                                        <CardMedia style={{width: "300px", height: "150px"}} title="Distribution"
+                                        image="https://developer.spotify.com/assets/audio/acousticness.png" />
+                                    </div>
+                                    <Typography>
+                                        A confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic. The distribution of values for this feature look like this.
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        </Grid>
+
+                        <Grid item lg={2} md={10} sm={10} xs={10}>
+                            <Card style={descStyle} variant="outlined">
+                                <CardContent>
+                                    <div style={imageStyle}>
+                                        <CardMedia style={{width: "300px", height: "150px"}} title="Distribution"
+                                        image="https://developer.spotify.com/assets/audio/danceability.png" />
+                                    </div>
+                                    <Typography>
+                                        Danceability describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable. The distribution of values for this feature look like this.
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        </Grid>
+
+                        <Grid item lg={2} md={10} sm={10} xs={10}>
+                            <Card style={descStyle} variant="outlined">
+                                <CardContent>
+                                    <div style={imageStyle}>
+                                        <CardMedia style={{width: "300px", height: "150px"}} title="Distribution"
+                                        image="https://developer.spotify.com/assets/audio/energy.png" />
+                                    </div>
+                                    <Typography>
+                                        Energy is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy. The distribution of values for this feature look like this.
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        </Grid>
+
+                        <Grid item lg={2} md={10} sm={10} xs={10}>
+                            <Card style={descStyle} variant="outlined">
+                                <CardContent>
+                                    <div style={imageStyle}>
+                                        <CardMedia style={{width: "300px", height: "150px"}} title="Distribution"
+                                        image="https://developer.spotify.com/assets/audio/valence.png" />
+                                    </div>
+                                    <Typography>
+                                        A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry). The distribution of values for this feature look like this.
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        </Grid>
+
+                        <Grid item lg={2} md={10} sm={10} xs={10}>
+                            <Card style={descStyle} variant="outlined">
+                                <CardContent>
+                                    <div style={imageStyle}>
+                                        <CardMedia style={{width: "300px", height: "150px"}} title="Distribution"
+                                        image="https://musicmachinery.files.wordpress.com/2013/09/localhost_8000_index-html-2.png" />
+                                    </div>
+                                    <Typography>
+                                        Spotify only has records the genres that an artist fits into. They do not record it for songs or albums. Therefore the graph represents the top 5 genres that artists in your top 50 were classified as.
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        </Grid>
+
+                    </Grid>
+                </Paper>
                 <div>
                     
                 </div>
