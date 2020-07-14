@@ -25,7 +25,8 @@ class Dashboard extends Component {
             username: cookie.get("username"),
             access_token: access_token, 
             chartData: [{}, {}, {}],
-            spotify_info: {}
+            spotify_info: {},
+            loading: false
         }
 
         this.chartReference = React.createRef();
@@ -98,6 +99,12 @@ class Dashboard extends Component {
             }
         }
 
+        const graphStyle = {
+            margin: "1.75vw",
+            backgroundColor: "#574b90",
+            padding: "20px"
+        }
+
         function islinked() {
             const imgStyle = { 
                 width: "20% ", 
@@ -114,18 +121,14 @@ class Dashboard extends Component {
             console.log(url.href)
 
             return (
-                <div style={{ width: "25vw" }}>
+                <div style={{ width: "25vw", margin: "auto" }}>
+                    <Paper elevation={3} style={graphStyle}>
                     <img alt="" style={imgStyle} src={ require("../dashboard/spotify-logo.png") }/>
-                    <a style={{ width: "75% ", display: "inline-block"}}
-                    href={ url.href }>Your spotify account is not linked</a>
+                        <a style={{ width: "75% ", display: "inline-block", marginTop: "20px"}}
+                        href={ url.href }>Your spotify account is not linked</a>
+                    </Paper>
                 </div>
             );
-        }
-
-        const graphStyle = {
-            margin: "1.75vw",
-            backgroundColor: "#574b90",
-            padding: "20px"
         }
 
         return (
@@ -142,12 +145,38 @@ class Dashboard extends Component {
                 <Grid container direction="row" justify="space-evenly" alignItems="baseline">
                     <Grid item lg={6} md={6} sm={10} xs={10}>
                         <Paper elevation={3} style={graphStyle}>
-                            { this.state.linked ? <BarChart ref={this.chartReference} data={this.state.chartData[0]} options={options} /> : null }
+                            { 
+                                this.state.linked ? <BarChart ref={this.chartReference} data={this.state.chartData[0]} options={options} /> 
+                                : 
+                                (
+                                    this.state.loading 
+                                    ? 
+                                    <div style={{width: "90%", marginLeft: "5%", marginRight: "5%"}}>
+                                        <img src="https://i.gifer.com/ZlXo.gif" alt="Loading gif"/>
+                                        <h2 style={{display: "inline-block", textAlign: "center", marginLeft: "5%"}}>Loading Data For Graph</h2>
+                                    </div>
+                                    :
+                                    null
+                                )
+                            }
                         </Paper>
                     </Grid>
                     <Grid item lg={6} md={6} sm={10} xs={10}>
                         <Paper elevation={3} style={graphStyle}>
-                            { this.state.linked ? <DoughnutChart style={graphStyle} ref={this.chartReference} data={this.state.chartData[2]} options={doughnutOptions} /> : null }
+                            { 
+                                this.state.linked ? <DoughnutChart style={graphStyle} ref={this.chartReference} data={this.state.chartData[2]} options={doughnutOptions} /> 
+                                : 
+                                (
+                                    this.state.loading 
+                                    ? 
+                                    <div style={{width: "90%", marginLeft: "5%", marginRight: "5%"}}>
+                                        <img src="https://i.gifer.com/ZlXo.gif" alt="Loading gif"/>
+                                        <h2 style={{display: "inline-block", textAlign: "center", marginLeft: "5%"}}>Loading Data For Graph</h2>
+                                    </div>
+                                    :
+                                    null
+                                )
+                            }
                         </Paper>
                     </Grid>
                 </Grid>
@@ -275,6 +304,8 @@ class Dashboard extends Component {
             });
 
             if (!saved) saveSpotifyInfo(spotifyStats);
+
+            self.setState({ linked: true });
         }
 
         this.getUserInfo().then((info) => {
@@ -291,7 +322,7 @@ class Dashboard extends Component {
                 if (url.includes("#")) {
 
                     const urlParams = (url.split("#")[1]).split("&");
-                    self.setState({ linked: true });
+                    self.setState({ loading: true });
         
                     for (let param of urlParams) {
                         if (param.includes("access_token")) {
