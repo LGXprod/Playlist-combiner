@@ -5,17 +5,17 @@ import * as serviceWorker from './serviceWorker';
 
 import LoginForm from "./components/login/LoginForm";
 import Dashboard from "./components/dashboard/Dashboard";
+import PlaylistCombiner from "./components/playlistCombiner/PlaylistCombiner";
 
 ReactDOM.render(
   // using strict mode so I can more easily detect errors
-  <React.StrictMode>
-      <Router>
-        <Switch>
-          <Route path="/" exact component={LoginForm} />
-          <Route path="/dashboard" component={Dashboard} />
-        </Switch>
-      </Router>
-  </React.StrictMode>,
+  <Router>
+      <Switch>
+        <Route path="/" exact component={LoginForm} />
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/playlist-combiner" component={PlaylistCombiner} />
+      </Switch>
+  </Router>,
   document.getElementById('root')
 );
 

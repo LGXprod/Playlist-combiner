@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 import Cookies from "universal-cookie";
 import { Bar as BarChart, Doughnut as DoughnutChart } from "react-chartjs-2";
-import { Grid, Paper, Card, CardMedia, CardContent, Typography,
-Menu, MenuItem, Button } from "@material-ui/core";
+import { Grid, Paper, Card, CardMedia, CardContent, Typography } from "@material-ui/core";
 import DescCard from "./DescCard";
+import Menu from "../menu/Menu";
 
 const axios = require("axios");
 const queryString = require("querystring");
@@ -25,8 +25,7 @@ class Dashboard extends Component {
             username: cookie.get("username"),
             access_token: access_token, 
             chartData: [{}, {}, {}],
-            spotify_info: {},
-            anchorEl: null
+            spotify_info: {}
         }
 
         this.chartReference = React.createRef();
@@ -48,14 +47,6 @@ class Dashboard extends Component {
                 reject(err);
             });
         })
-    }
-
-    handleClick = (event) => {
-        this.setState({ anchorEl: event.currentTarget });
-    }
-
-    handleClose = () => {
-        this.setState({ anchorEl: null });
     }
 
     render() {
@@ -143,19 +134,8 @@ class Dashboard extends Component {
                 <h3 style={{textAlign: "center", fontSize: "2.5vw"}}>
                     { "Name: " + this.state.fName + " " + this.state.sName + " | Username: " + this.state.username}
                 </h3>
-                
-                <Button aria-controls="simple-menu" aria-haspopup="true" onClick={this.handleClick}>Options</Button>
-                <Menu
-                id="simple-menu"
-                anchorEl={this.state.anchorEl}
-                keepMounted
-                open={Boolean(this.state.anchorEl)}
-                onClose={this.handleClose}
-                >
-                    <MenuItem onClick={this.handleClose}>Dashboard</MenuItem>
-                    <MenuItem onClick={this.handleClose}>Playlist Combiner</MenuItem>
-                    <MenuItem onClick={this.handleClose}>Logout</MenuItem>
-                </Menu>
+
+                <Menu linked={this.state.linked}/>
 
                 { !(this.state.linked) ? islinked() : null }
 
@@ -284,7 +264,8 @@ class Dashboard extends Component {
                         datasets: [
                             {
                                 data: noTimes,
-                                backgroundColor: "rgba(192, 108, 132, 0.5)",
+                                backgroundColor: ["rgb(37, 31, 68, 0.5)", "rgba(143, 207, 209, 0.5)",
+                                "rgba(223, 94, 136, 0.5)", "rgba(246, 171, 108, 0.5)", "rgba(246, 239, 166, 0.5)"],
                                 borderWidth: "2",
                                 borderColor: "#f67280"
                             }
@@ -339,6 +320,8 @@ class Dashboard extends Component {
 
                                 let genres = {}
 
+                                let genreToSong = {}
+
                                 for (var song of res.data.items) {
 
                                     try {
@@ -363,8 +346,10 @@ class Dashboard extends Component {
                                             console.log(genre);
                                             if (genres.hasOwnProperty(genre)) {
                                                 genres[genre] += 1;
+                                                genreToSong[genre].push({name: song.name, id: song.id});
                                             } else {
                                                 genres[genre] = 1;
+                                                genreToSong[genre] = [{name: song.name, id: song.id}];
                                             }
                                         }
 
@@ -374,7 +359,7 @@ class Dashboard extends Component {
                                     
                                 }
 
-                                addData({ averageOfFeatures: averageOfFeatures, genres: genres }, false);
+                                addData({ averageOfFeatures: averageOfFeatures, genres: genres, genreToSong: genreToSong }, false);
                             }
 
                         requestSpotify();
