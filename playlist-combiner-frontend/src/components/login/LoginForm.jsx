@@ -74,8 +74,7 @@ class LoginForm extends Component {
                     <Grid container direction="column" justify="center" alignItems="center">
                         <img style={{width: "50%"}} alt="Logo" src={require("./logo.png")}></img>
                         <h1 style={{textAlign: "center"}}>Sign into Spotify Mixer</h1>
-                        <TextField style={form_components_styles} 
-                        InputProps={{style: {borderBlockColor: "yellow"}}} id="outlined-basic" 
+                        <TextField style={form_components_styles} id="outlined-basic" 
                         variant="outlined" label="Username" onChange={this.updateUsername} />
                         <TextField type="password" style={form_components_styles} id="outlined-basic"
                         variant="outlined" label="Password" onChange={this.updatePassword} />
