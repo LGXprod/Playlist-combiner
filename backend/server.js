@@ -8,7 +8,8 @@ const dashboardController = require("./controllers/dashboardController");
 
 const playlistCombiner = express();
 
-playlistCombiner.use(bodyParser.urlencoded({extended: true}));
+playlistCombiner.use(bodyParser.urlencoded({extended: true, limit: '50mb'}));
+playlistCombiner.use(express.json({limit: '50mb'}));
 
 playlistCombiner.listen(5000, () => console.log("Server running on port 5000"));
 

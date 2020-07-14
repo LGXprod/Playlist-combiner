@@ -7,7 +7,8 @@ class DescCard extends Component {
 
         const descStyle = {
             backgroundColor: "#574b90",
-            color: "#fc85ae"
+            color: "#fc85ae",
+            marginBottom: "20px"
         }
 
         const imageStyle = {

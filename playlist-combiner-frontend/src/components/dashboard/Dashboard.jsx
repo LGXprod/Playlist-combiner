@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import Cookies from "universal-cookie";
 import { Bar as BarChart, Doughnut as DoughnutChart } from "react-chartjs-2";
-import { Grid, Paper, Card, CardMedia, CardContent, Typography } from "@material-ui/core";
+import { Grid, Paper } from "@material-ui/core";
 import DescCard from "./DescCard";
 import Menu from "../menu/Menu";
 
@@ -152,7 +152,7 @@ class Dashboard extends Component {
                     </Grid>
                 </Grid>
 
-                <Paper elevation={3} style={{backgroundColor: "rgba(0,0,0,0)"}}>
+                <Paper elevation={3} style={{backgroundColor: "rgba(0,0,0,0)", marginBottom: "20px"}}>
                     <Grid container direction="row" justify="space-evenly" alignItems="baseline">
 
                         <DescCard 
@@ -321,7 +321,7 @@ class Dashboard extends Component {
                                 let genres = {}
 
                                 let genreToSong = {}
-
+                                console.log(res.data.items);
                                 for (var song of res.data.items) {
 
                                     try {
@@ -343,13 +343,19 @@ class Dashboard extends Component {
                                         averageOfFeatures.tempo += featureRes.data.tempo/50;
                                         
                                         for (let genre of artistRes.data.genres) {
-                                            console.log(genre);
+                                            const songInfo = {
+                                                name: song.name, 
+                                                id: song.id,
+                                                albumCover: song.album.images[1].url,
+                                                artists: song.artists
+                                            }
+
                                             if (genres.hasOwnProperty(genre)) {
                                                 genres[genre] += 1;
-                                                genreToSong[genre].push({name: song.name, id: song.id});
+                                                genreToSong[genre].push(songInfo);
                                             } else {
                                                 genres[genre] = 1;
-                                                genreToSong[genre] = [{name: song.name, id: song.id}];
+                                                genreToSong[genre] = [songInfo];
                                             }
                                         }
 

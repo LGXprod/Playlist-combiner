@@ -1,9 +1,8 @@
 import React, { Component } from "react";
 import Menu from "../menu/Menu";
-import { TextField, Paper, Button, Grid } from "@material-ui/core";
+import { TextField, Paper, Button, Grid, ListItemText } from "@material-ui/core";
 import Cookies from "universal-cookie";
 import SongCard from "./SongCard";
-import { generateKeyPair } from "crypto";
 
 const axios = require("axios").default;
 const queryString = require("querystring");
@@ -20,7 +19,8 @@ class PlaylistCombiner extends Component {
             searchedUsername: "",
             userFound: null, 
             playlist: [],
-            spotifyInfo: []
+            spotifyInfo: [],
+            playlistComponent: null
         }
     }
 
@@ -71,11 +71,12 @@ class PlaylistCombiner extends Component {
         function createPlaylist() {
 
             // this.search();
-
+            console.log(this.state.spotifyInfo)
             if (this.state.userFound) {
 
                 function sortGenres(spotifyInfo) {
                     let genres = [];
+                    
 
                     for (let genre in spotifyInfo.genreToSong) {
                         const genreInfo = {};
@@ -91,8 +92,6 @@ class PlaylistCombiner extends Component {
                     searchedUser: sortGenres(this.state.spotifyInfo[0]),
                     user: sortGenres(this.state.spotifyInfo[1])
                 }
-
-                console.log("x", sortedGenres)
 
                 let playlist = [];
 
@@ -116,8 +115,35 @@ class PlaylistCombiner extends Component {
                     break;
 
                 }
+                console.log(playlist)
+                let playlistComponent = [];
+                let i = 1;
 
-                this.setState({ playlist: playlist });
+                for (let song of playlist) {
+                    let artists = "";
+
+                    for (let artist of song.artists) {
+                        artists += artist.name + ", "
+                    }
+
+                    artists = artists.slice(0, -2);
+
+                    playlistComponent.push(
+                        <SongCard 
+                            key={i}
+                            img={song.albumCover}
+                            name={song.name}
+                            artists={artists}
+                        />
+                    )
+
+                    ++i;
+                }
+
+                this.setState({ 
+                    playlist: playlist,
+                    playlistComponent: playlistComponent
+                });
 
             }
             
@@ -160,14 +186,18 @@ class PlaylistCombiner extends Component {
                     
                 </Paper>
 
-                <Paper elevation={3} style={{backgroundColor: "#574b90", width: "75%", marginLeft: "12.5%", marginRight: "12.5%", padding: "20px"}}>
-
-                    <Grid container>
+                <div style={{width: "75%", marginLeft: "12.5%", marginRight: "12.5%", padding: "20px", marginBottom: "20px"}}>
+                    <Grid 
+                        container
+                        direction="row"
+                        justify="space-evenly"
+                        alignItems="center"
+                        >
                         
+                        { this.state.playlistComponent }
 
                     </Grid>
-
-                </Paper>
+                </div>
                 
             </div>
         );
