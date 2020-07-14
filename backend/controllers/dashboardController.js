@@ -15,11 +15,21 @@ function getUserInfo(app, User) {
             })
         }
 
-        queryDB().then((userInfo) => res.json({
-            fName: userInfo[0].fName,
-            sName: userInfo[0].sName,
-            spotify_info: userInfo[0].spotify_info
-        }));
+        queryDB().then((userInfo) => {
+            console.log("x", userInfo)
+            if (userInfo.length == 1) {
+                res.json({
+                    fName: userInfo[0].fName,
+                    sName: userInfo[0].sName,
+                    spotify_info: userInfo[0].spotify_info,
+                    userFound: true
+                });
+            } else {
+                res.json({
+                    userFound: false
+                });
+            }
+        });
     });
 }
 
