@@ -58,7 +58,7 @@ class LoginForm extends Component {
     render() {
 
         const form_style = {
-            backgroundColor: "#f67280",
+            backgroundColor: "#574b90",
             borderRadius: "10px",
             padding: "10px",
             marginTop: "10vh"
@@ -72,7 +72,7 @@ class LoginForm extends Component {
             <Container maxWidth="xs">
                 <form style={form_style}>
                     <Grid container direction="column" justify="center" alignItems="center">
-                        <img style={{width: "50%"}} alt="Logo" src={require("./logo.png")}></img>
+                        <img style={{width: "50%"}} alt="Logo" src={require("./logo2.png")}></img>
                         <h1 style={{textAlign: "center"}}>Sign into Spotify Mixer</h1>
                         <TextField style={form_components_styles} id="outlined-basic" 
                         variant="outlined" label="Username" onChange={this.updateUsername} />
