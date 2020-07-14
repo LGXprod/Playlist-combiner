@@ -41,7 +41,6 @@ class Dashboard extends Component {
                 'Content-Type': 'application/x-www-form-urlencoded'
                 }
             }).then(function(res) {
-                if (res.data.spotify_info != null) this.setState({ linked: true }) 
                 resolve(res.data);
             }).catch(function(err) {
                 reject(err);
@@ -331,14 +330,16 @@ class Dashboard extends Component {
         }
 
         this.getUserInfo().then((info) => {
+
             this.setState({ 
                 fName: info.fName,
                 sName: info.sName,
-                spotifyStats: info.spotify_info
+                spotifyStats: info.spotify_info, 
+                linked: (info.spotify_info != null ? true : false)
             });
 
             if (!this.state.linked) {
-
+                
                 if (url.includes("#")) {
 
                     const urlParams = (url.split("#")[1]).split("&");
@@ -416,7 +417,7 @@ class Dashboard extends Component {
                 }
                 
             } else {
-                addData(this.state.spotify_info);
+                addData(JSON.parse(this.state.spotifyStats));
             }
         }).catch(err => console.log(err));
     }
