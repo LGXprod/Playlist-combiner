@@ -227,7 +227,7 @@ class Dashboard extends Component {
         console.log(this.state.linked)
 
         function saveSpotifyInfo(spotifyStats) {
-            console.log(JSON.stringify(spotifyStats))
+            
             axios.post("/saveSpotifyInfo", queryString.stringify({
                 username: self.state.username,
                 spotify_info: JSON.stringify(spotifyStats)
@@ -236,6 +236,7 @@ class Dashboard extends Component {
                   'Content-Type': 'application/x-www-form-urlencoded'
                 }
             });
+            
         }
 
         function addData(spotifyStats, saved) {
@@ -246,11 +247,6 @@ class Dashboard extends Component {
 
             const genres = [];
             const noTimes = [];
-
-            // for (let genre in spotifyStats.genres) {
-            //     genres.push(genre);
-            //     noTimes.push(spotifyStats.genres[genre]);
-            // }
 
             function mostPopularGenre() {
                 

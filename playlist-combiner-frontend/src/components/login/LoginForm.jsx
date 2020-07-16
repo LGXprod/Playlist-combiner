@@ -18,6 +18,8 @@ class LoginForm extends Component {
         // this.login = this.login.bind(this);
     }
 
+    // whenever the username textfield's value is updated, the username is state is updated
+    // to the same value
     updateUsername = (event) => {
         this.setState({username: event.target.value});
     }
@@ -28,8 +30,6 @@ class LoginForm extends Component {
 
     login = async (e) => {
         e.preventDefault(); // according to the W3C spec this is for browser compatibility
-
-        const self = this;
 
         axios.post("/login", queryString.stringify({
             username: this.state.username,
@@ -43,6 +43,8 @@ class LoginForm extends Component {
                 const cookie = new Cookies();
                 let currentDate = new Date();
                 
+                // if the user name and password is correct we create a cookie that will act as our
+                // session id and will expire after 30 minutes
                 cookie.remove("username", { path: "/", expires: currentDate.setMinutes(30) });
                 cookie.set("username", this.state.username, { path: "/" });
 

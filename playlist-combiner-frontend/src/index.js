@@ -8,9 +8,9 @@ import Dashboard from "./components/dashboard/Dashboard";
 import PlaylistCombiner from "./components/playlistCombiner/PlaylistCombiner";
 
 ReactDOM.render(
-  // using strict mode so I can more easily detect errors
   <Router>
       <Switch>
+        {/* must exact below otherwise any url that starts with / will redirect to the login form */}
         <Route path="/" exact component={LoginForm} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/playlist-combiner" component={PlaylistCombiner} />

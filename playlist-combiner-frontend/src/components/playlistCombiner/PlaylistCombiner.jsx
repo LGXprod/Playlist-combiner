@@ -70,10 +70,10 @@ class PlaylistCombiner extends Component {
 
         function createPlaylist() {
 
-            // this.search();
             console.log(this.state.spotifyInfo)
             if (this.state.userFound) {
 
+                // sorts genresToSongs by how many songs each property has
                 function sortGenres(spotifyInfo) {
                     let genres = [];
                     
@@ -95,6 +95,8 @@ class PlaylistCombiner extends Component {
 
                 let playlist = [];
 
+                // for every matched genre add 3 songs in that genre from the original user
+                // and 3 songs from the user that was searched
                 for (let userGenre of sortedGenres.user) {
 
                     for (let searchGenre of sortedGenres.searchedUser) {
@@ -150,8 +152,6 @@ class PlaylistCombiner extends Component {
         }
 
         const createThePlaylist = createPlaylist.bind(this);
-
-        // createThePlaylist();
 
         return (
             <div>

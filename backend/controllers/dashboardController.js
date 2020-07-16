@@ -10,13 +10,15 @@ function getUserInfo(app, User) {
                             [Op.eq]: req.body.username
                         }
                     },
+                    // only returns the below fields in the user table
                     attributes: ["fName", "sName", "spotify_info"]
                 }));
             })
         }
 
         queryDB().then((userInfo) => {
-            console.log("x", userInfo)
+            // only zero or one users will ever be returned from queryDB
+            // as username is the pk in the user table so no 2 usernames will be the same
             if (userInfo.length == 1) {
                 res.json({
                     fName: userInfo[0].fName,
@@ -34,8 +36,9 @@ function getUserInfo(app, User) {
 }
 
 function saveSpotifyInfo(app, User) {
+    // updates a new user's spotify_info field (initially null) with the spotify api
+    // data retrieved by the frontend
     app.post("/saveSpotifyInfo", function(req, res) {
-        console.log("x", req.body.spotify_info)
         User.update({ spotify_info: req.body.spotify_info }, 
             { 
                 where: {

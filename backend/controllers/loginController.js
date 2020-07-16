@@ -9,6 +9,7 @@ module.exports = (app, User) => {
             const user = await User.findAll({
                 where: {
                     username: {
+                        // Op.eq explicitly tells sequelize its a equality comparison
                         [Op.eq]: username
                     }, 
                     password: {
@@ -22,6 +23,8 @@ module.exports = (app, User) => {
             return false;
         }
 
+        // calls and waits for the result of the above async function
+        // returns return or false depending on if the user had the correct credentials
         (async () => {
             if (await checkCredentials()) {
                 res.json({
